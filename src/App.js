@@ -5,7 +5,7 @@ import Item from "./components/Item";
 
 function App() {
   const [items, setItems] = useState([]);
-  const [filteredItems, setFilterdItems] = useState([]);
+
   const [search, setSearch] = useState("");
   const [validationText, setValidationText] = useState(true);
 
