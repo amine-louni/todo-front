@@ -7,18 +7,20 @@ function App() {
   const [items, setItems] = useState([]);
 
   const [search, setSearch] = useState("");
+  const [itemsDetails, setItemDetails] = useState({});
   const [validationText, setValidationText] = useState(true);
 
   useEffect(() => {
     (async () => {
-      console.log("did mount");
       const res = await Axios.get(
-        "https://damp-tor-09237.herokuapp.com/api/v1/items"
+        "https://damp-tor-09237.herokuapp.com/api/v1/items/"
       );
 
-      console.log(res);
       const resItems = res.data.data.docs;
-
+      setItemDetails({
+        all: res.data.all,
+        results: res.data.results,
+      });
       setItems(resItems);
     })();
   }, []);
@@ -28,7 +30,7 @@ function App() {
     try {
       if (!validationText) {
         const res = await Axios.post(
-          "https://damp-tor-09237.herokuapp.com/api/v1/items",
+          "https://damp-tor-09237.herokuapp.com/api/v1/items/",
           {
             name: search,
           }
@@ -53,6 +55,20 @@ function App() {
       setValidationText("");
     }
   };
+
+  const goTo = async (page) => {
+    const res = await Axios.get(
+      `https://damp-tor-09237.herokuapp.com/api/v1/items?page=${page}`
+    );
+
+    const resItems = res.data.data.docs;
+    setItemDetails({
+      all: res.data.all,
+      results: res.data.results,
+    });
+    setItems(resItems);
+  };
+
   return (
     <div className="mt-5">
       <div className="container">
@@ -84,17 +100,41 @@ function App() {
               </div>
             </div>
             <div className="text-danger">{validationText}</div>
-
+            <nav aria-label="Page navigation example" className="my-4">
+              <ul className="pagination">
+                {itemsDetails &&
+                  itemsDetails.all &&
+                  itemsDetails.results &&
+                  Array(Math.ceil(itemsDetails.all / 5))
+                    .fill()
+                    .map((num, index) => (
+                      <li className="page-item">
+                        <a
+                          className="page-link"
+                          href={index + 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            goTo(index + 1);
+                          }}
+                        >
+                          {index + 1}
+                        </a>
+                      </li>
+                    ))}
+              </ul>
+            </nav>
             <ul className="list-group mt-4">
               {items &&
-                items.map((item) => (
-                  <Item
-                    items={items}
-                    setItems={setItems}
-                    data={item}
-                    key={item._id}
-                  />
-                ))}
+                items
+                  .filter((item) => item.name.includes(search))
+                  .map((item) => (
+                    <Item
+                      items={items}
+                      setItems={setItems}
+                      data={item}
+                      key={item._id}
+                    />
+                  ))}
               {items.length === 0 && search.length === 0 ? (
                 <h3 className="text-center">
                   Empty list , create new items ✍
